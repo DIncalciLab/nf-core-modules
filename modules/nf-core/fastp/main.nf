@@ -31,13 +31,13 @@ process FASTP {
     def prefix = task.ext.prefix ?: "${meta.id}"
     def adapter_list = adapter_fasta ? "--adapter_fasta ${adapter_fasta}" : ""
     def fail_fastq = save_trimmed_fail && meta.single_end ? "--failed_out ${prefix}.fail.fastq.gz" : save_trimmed_fail && !meta.single_end ? "--failed_out ${prefix}.paired.fail.fastq.gz --unpaired1 ${prefix}_1.fail.fastq.gz --unpaired2 ${prefix}_2.fail.fastq.gz" : ''
-    def out_fq1 = discard_trimmed_pass ?: ( meta.single_end ? "--out1 ${prefix}.fastp.fastq.gz" : "--out1 ${prefix}_1.fastp.fastq.gz" )
-    def out_fq2 = discard_trimmed_pass ?: "--out2 ${prefix}_2.fastp.fastq.gz"
+    def out_fq1 = discard_trimmed_pass ? null : ( meta.single_end ? "--out1 ${prefix}.fastp.fastq.gz" : "--out1 ${prefix}_1.fastp.fastq.gz" )
+    def out_fq2 = discard_trimmed_pass ? null : "--out2 ${prefix}_2.fastp.fastq.gz"
 
     // Make sure we don't have identical inputs and outputs
     def read_files = reads instanceof List ? reads : [reads]
-    def out_fq1_file = discard_trimmed_pass ? null : out_fq1.tokenize(' ').last()
-    def out_fq2_file = discard_trimmed_pass ? null : out_fq2.tokenize(' ').last()
+    def out_fq1_file = out_fq1 ? out_fq1.tokenize(' ').last() : null
+    def out_fq2_file = out_fq2 ? out_fq2.tokenize(' ').last() : null
 
     if (read_files.any { it == out_fq1_file || it == out_fq2_file }) {
         error "One or more input file has the same name as the output file names, set prefix in module configuration to disambiguate."
