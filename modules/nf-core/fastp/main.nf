@@ -36,8 +36,8 @@ process FASTP {
 
     // Make sure we don't have identical inputs and outputs
     def read_files = reads instanceof List ? reads : [reads]
-    def out_fq1_file = out_fq1.tokenize(' ').last()
-    def out_fq2_file = out_fq2.tokenize(' ').last()
+    def out_fq1_file = discard_trimmed_pass ? null : out_fq1.tokenize(' ').last()
+    def out_fq2_file = discard_trimmed_pass ? null : out_fq2.tokenize(' ').last()
 
     if (read_files.any { it == out_fq1_file || it == out_fq2_file }) {
         error "One or more input file has the same name as the output file names, set prefix in module configuration to disambiguate."
