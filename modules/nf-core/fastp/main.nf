@@ -33,6 +33,16 @@ process FASTP {
     def fail_fastq = save_trimmed_fail && meta.single_end ? "--failed_out ${prefix}.fail.fastq.gz" : save_trimmed_fail && !meta.single_end ? "--failed_out ${prefix}.paired.fail.fastq.gz --unpaired1 ${prefix}_1.fail.fastq.gz --unpaired2 ${prefix}_2.fail.fastq.gz" : ''
     def out_fq1 = discard_trimmed_pass ?: ( meta.single_end ? "--out1 ${prefix}.fastp.fastq.gz" : "--out1 ${prefix}_1.fastp.fastq.gz" )
     def out_fq2 = discard_trimmed_pass ?: "--out2 ${prefix}_2.fastp.fastq.gz"
+
+    // Make sure we don't have identical inputs and outputs
+    def read_files = reads instanceof List ? reads : [reads]
+    def out_fq1_file = out_fq1.tokenize(' ').last()
+    def out_fq2_file = out_fq2.tokenize(' ').last()
+
+    if (read_files.any { it == out_fq1_file || it == out_fq2_file }) {
+        error "One or more input file has the same name as the output file names, set prefix in module configuration to disambiguate."
+    }
+
     // Added soft-links to original fastqs for consistent naming in MultiQC
     // Use single ended for interleaved. Add --interleaved_in in config.
     if ( task.ext.args?.contains('--interleaved_in') ) {
